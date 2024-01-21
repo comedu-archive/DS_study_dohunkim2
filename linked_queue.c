@@ -32,48 +32,46 @@ que* createQue(){
 }
 
 int isempty(que* q){
-    return q-> front == NULL || q-> rear == NULL;
+    return q-> front == NULL;
 }
 
 /* int isfull(){
     선형 큐니까 생략할게요
 }*/
 
-node* createNode(){
+node* createNode(int x){
     node* n = malloc(sizeof(node));
     if (n == NULL){
         printf("memoryfail!");
-        exit(0);
+        exit(EXIT_FAILURE);
     }
-    n -> data = 0;
+    n -> data = x;
     n -> next = NULL;
 
     return n;
 }
 
 void enqueue(que* q, int x){
-    node* new = createNode();
-    if (q-> size == 0){
+    node* new = createNode(x);
+    if (isempty(q)){
         q -> front = new;
         q -> rear = new;
         new -> data = x;
         q->size++;
         return;
     }
-    // 기존 리어 잠시 저장
-    node* temp = q -> rear;
-    q->rear = new;
     // 새로운 노드 데이터에 x저장
     new -> data = x;
     //기존 노드와 새로운 노드 연결
-    temp -> next = new;
+    q -> rear -> next = new;
+    q -> rear = new;
     q-> size++;
     return;
     
 }
 
 void dequeue(que* q, int *x){
-    if (q->size ==0){
+    if (isempty(q)){
         printf("empty que\n");
         return;
     }
@@ -86,52 +84,103 @@ void dequeue(que* q, int *x){
     // 기존 친구는 빠빠이
     free(temp);
     q-> size --;
+    
+    if (isempty(q)){
+        q-> front = NULL; 
+        q-> rear = NULL;
+    }
 }
 
-void peek(que *q){
-    if (q->size ==0){
+void peek(que *q, int* x){
+    if (isempty(q)){
         printf("empty que\n");
         return;
     }
-    printf("front value: %d",q->front->data);
+    *x = q -> front -> data;
+}
+
+int get_size(que *q){
+    return q -> size;
+}
+
+int is_member(que *q, int x){
+    node* temp = q -> front;
+    while(temp -> next != NULL){
+        if (temp -> data == x){
+            return 1;
+            temp = temp -> next;
+        }
+        return -1;
+    }
 }
 
 // 메인함수는 챗지피티
-
-
 int main() {
-    que* q = createQue();
-    int choice, value;
+    // Create a queue
+    que* myQueue = createQue();
 
+    int choice, value;
+    
     while (1) {
-        printf("\n1. Enqueue\n2. Dequeue\n3. Peek\n4. Exit\n");
-        printf("Choose an operation: ");
+        printf("\nQueue Operations:\n");
+        printf("1. Enqueue\n");
+        printf("2. Dequeue\n");
+        printf("3. Peek\n");
+        printf("4. Check Membership\n");
+        printf("5. Get Queue Size\n");
+        printf("6. Exit\n");
+
+        printf("Enter your choice: ");
         scanf("%d", &choice);
 
         switch (choice) {
             case 1:
-                printf("Enter the value to enqueue: ");
+                printf("Enter value to enqueue: ");
                 scanf("%d", &value);
-                enqueue(q, value);
-                printf("%d has been added to the queue.\n", value);
+                enqueue(myQueue, value);
+                printf("Enqueued %d\n", value);
                 break;
+            
             case 2:
-                if (isempty(q)) {
-                    printf("The queue is empty.\n");
+                if (!isempty(myQueue)) {
+                    dequeue(myQueue, &value);
+                    printf("Dequeued value: %d\n", value);
                 } else {
-                    dequeue(q, &value);
-                    printf("%d has been removed from the queue.\n", value);
+                    printf("Queue is empty. Cannot dequeue.\n");
                 }
                 break;
+
             case 3:
-                peek(q);
+                if (!isempty(myQueue)) {
+                    peek(myQueue, &value);
+                    printf("Front value: %d\n", value);
+                } else {
+                    printf("Queue is empty. Cannot peek.\n");
+                }
                 break;
+
             case 4:
-                printf("Exiting the program.\n");
-                // Additional tasks like memory deallocation can be performed here if needed
+                printf("Enter value to check membership: ");
+                scanf("%d", &value);
+                if (is_member(myQueue, value) == 1) {
+                    printf("%d is a member of the queue.\n", value);
+                } else {
+                    printf("%d is not found in the queue.\n", value);
+                }
+                break;
+
+            case 5:
+                printf("Queue size: %d\n", get_size(myQueue));
+                break;
+
+            case 6:
+                // Clean up and exit
+                free(myQueue);
+                printf("Exiting program.\n");
                 return 0;
+
             default:
-                printf("Invalid input. Please choose again.\n");
+                printf("Invalid choice. Please enter a valid option.\n");
         }
     }
 
